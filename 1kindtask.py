@@ -163,34 +163,37 @@ def fetch_abc_news_content_page(teaser,href):
         time.sleep(5)
 
 def analyse_news_content_page(newspage):
-    newssoup = BeautifulSoup(newspage.text,'lxml')
-    news_title = newssoup.find('h1').text
-    news_time = newssoup.find(class_="_1EAJU _1NECW _2L258 _14LIk _3pVeq hmFfs _2F43D")['datetime']
-    news_date = news_time[:10]
-    news_body = newssoup.find('div', id = 'body')
-    news_body.find_all(class_='r6CUb u0kBv _3CtDL _1_pW8 _3Fvo9')
-    news_topics = []
-    for i in news_body.find_all(class_='r6CUb u0kBv _3CtDL _1_pW8 _3Fvo9'):
-        news_topics.append({'Label':i.text,'Link':i['href']})
-    news_content = ''
-    for i in news_body.find_all('p'):
-        news_content+= i.text+'\n'
-
-    return news_title, news_topics, news_time, news_date, news_content
+    try:
+        newssoup = BeautifulSoup(newspage.text,'lxml')
+        news_title = newssoup.find('h1').text
+        news_time = newssoup.find(class_="_1EAJU _1NECW _2L258 _14LIk _3pVeq hmFfs _2F43D")['datetime']
+        news_date = news_time[:10]
+        news_body = newssoup.find('div', id = 'body')
+        news_body.find_all(class_='r6CUb u0kBv _3CtDL _1_pW8 _3Fvo9')
+        news_topics = []
+        for i in news_body.find_all(class_='r6CUb u0kBv _3CtDL _1_pW8 _3Fvo9'):
+            news_topics.append({'Label':i.text,'Link':i['href']})
+        news_content = ''
+        for i in news_body.find_all('p'):
+            news_content+= i.text+'\n'
+        return news_title, news_topics, news_time, news_date, news_content
+    except:
+        error_logger.exception('Failed to analyse news_content')
+        sys.exit()
 
 def fetch_all_news():
     
     return
 
 
-def store_to_database(df):
+def store_to_database(name,df):
     try:
         debug_logger.info('Saving scrapped data into database')
         engine = sa.create_engine(
         f"postgresql+psycopg2://{cf['user']}:{cf['password']}@{cf['host']}:{cf['port']}/{cf['database']}",
         isolation_level="SERIALIZABLE",
     )
-        abc_mainpage_news_df.to_sql('news',con = engine,if_exists = 'replace',index_label='sub_id')
+        df.to_sql(name,con = engine,if_exists = 'replace',index_label='sub_id')
     except:
         error_logger.exception()
     return
@@ -203,13 +206,6 @@ if __name__== '__main__':
     c.read('config/1kindtask.ini')
     c.sections()
     cf = c['postgredb']
-    conn = pg.connect(
-    user = cf['user'],
-    password = cf['password'],
-    host = cf['host'],
-    port = cf['port'],
-    database = cf['database']
-)
     error_count = 0
     #fetch ABC News Mainpage
     mainpage = fetch_abc_news_main_page()   
@@ -244,7 +240,8 @@ if __name__== '__main__':
     abc_mainpage_news_df['topics'] = abc_news_topics
     abc_mainpage_news_df['time'] = abc_news_times
     abc_mainpage_news_df['content'] = abc_news_contents
-    store_to_database(abc_mainpage_news_df)
+    store_to_database('news',abc_mainpage_news_df)
+    store_to_database('topics',pd.DataFrame(abc_news_topics_list))
 
 
 
