@@ -237,11 +237,9 @@ if __name__== '__main__':
         abc_news_contents.append(news_content)
     
     abc_mainpage_news_df['title'] = abc_news_titles
-    abc_mainpage_news_df['topics'] = abc_news_topics
     abc_mainpage_news_df['time'] = abc_news_times
     abc_mainpage_news_df['content'] = abc_news_contents
     store_to_database('news',abc_mainpage_news_df)
-    store_to_database('topics',pd.DataFrame(abc_news_topics_list))
 
 
 
