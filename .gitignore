@@ -1,6 +1,8 @@
 /1Kind Task.txt
 .vscode/settings.json
-news
+news/abc/*.html
+news/abc/newspage/*.html
 checklist.txt
-log
-config
+log/debug/*.log
+log/error/*.log
+config/*.ini
